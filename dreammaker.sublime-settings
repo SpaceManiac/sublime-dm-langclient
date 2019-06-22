@@ -1,0 +1,10 @@
+{
+    // Whether language server auto-update is enabled.
+    "dreammaker.autoUpdate": null,
+
+    // Full path to the DreamMaker language server executable.
+    "dreammaker.langserverPath": null,
+
+    // Full path to the BYOND installation.
+    "dreammaker.byondPath": null,
+}
