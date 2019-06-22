@@ -50,7 +50,7 @@ class DreammakerBuildCommand(sublime_plugin.WindowCommand):
 		vars = self.window.extract_variables()
 		working_dir = vars['folder']
 
-		exe = utils.find_executable(["dm.exe", "DreamMaker"])
+		exe = utils.find_byond_file(["bin/dm.exe", "bin/DreamMaker"])
 		if exe is None:
 			sublime.error_message('You must configure "byondPath" to point to a valid BYOND installation.')
 			utils.open_config()

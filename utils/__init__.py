@@ -60,7 +60,7 @@ def open_config():
 	})
 
 
-def find_executable(nameset):
+def find_byond_file(nameset):
 	opt = get_config('byondPath')
 	if isinstance(opt, str):
 		opt = [opt]
@@ -70,7 +70,7 @@ def find_executable(nameset):
 
 	for each in opt:
 		for name in nameset:
-			binary = os.path.join(each, "bin", name)
+			binary = os.path.join(each, name)
 			if is_executable(binary):
 				return binary
 
