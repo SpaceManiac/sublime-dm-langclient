@@ -1,6 +1,10 @@
 [
     {
         "command": "dreammaker_toggle_ticked",
-        "caption": "DreamMaker: Toggle Tick"
-    }
+        "caption": "DreamMaker: Toggle Tick",
+    },
+    {
+        "command": "dreammaker_open_reference",
+        "caption": "DreamMaker: Open DM Reference",
+    },
 ]

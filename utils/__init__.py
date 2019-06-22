@@ -65,13 +65,17 @@ def find_byond_file(nameset):
 	if isinstance(opt, str):
 		opt = [opt]
 	if not opt:
-		print("No BYOND path")
+		sublime.error_message("A BYOND path must be provided to use this feature.")
+		open_config()
 		return
+
+	if isinstance(nameset, str):
+		nameset = [nameset]
 
 	for each in opt:
 		for name in nameset:
-			binary = os.path.join(each, name)
-			if is_executable(binary):
+			binary = "{}/{}".format(each, name)
+			if os.path.exists(binary):
 				return binary
 
 

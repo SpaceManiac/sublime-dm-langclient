@@ -119,7 +119,7 @@ def environment_path(window, of):
 
 
 def is_tickable(include):
-	return include.endswith(".dm") or include.endswith(".dmm") or include.endswith(".dmf") or include.endswith(".dms")
+	return include and (include.endswith(".dm") or include.endswith(".dmm") or include.endswith(".dmf") or include.endswith(".dms"))
 
 
 def toggle_ticked(edit, view, include, state):
