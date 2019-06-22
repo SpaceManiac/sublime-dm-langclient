@@ -16,6 +16,7 @@
 
 # 'utils' package
 import os
+import stat
 import sublime
 import hashlib
 
@@ -23,6 +24,14 @@ from threading import Condition
 
 
 environment_file = None
+
+
+def is_executable(path):
+	req = stat.S_IXUSR | stat.S_IRUSR
+	try:
+		return (os.stat(path).st_mode & req) == req
+	except FileNotFoundError:
+		return False
 
 
 def md5_file(path):

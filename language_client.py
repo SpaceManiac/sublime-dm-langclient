@@ -232,14 +232,6 @@ def prompt_for_server_command(message):
 	return path
 
 
-def is_executable(path):
-	req = stat.S_IXUSR | stat.S_IRUSR
-	try:
-		return (os.stat(path).st_mode & req) == req
-	except FileNotFoundError:
-		return False
-
-
 def config_auto_update():
 	choice = get_config('autoUpdate')
 	if choice is not None:
@@ -280,7 +272,7 @@ def auto_update(platform, arch, out_file, hash):
 
 	try:
 		res = urllib.request.urlopen(url)
-	except e:
+	except Exception as e:
 		return "{}.".format(e)
 
 	print('DreamMaker Language Client autoupdater got', res.status, res.reason)
