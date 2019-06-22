@@ -1,14 +1,14 @@
 {
     // Whether language server auto-update is enabled.
-    "dreammaker.autoUpdate": null,
+    "autoUpdate": null,
 
     // Full path to the DreamMaker language server executable.
-    "dreammaker.langserverPath": null,
+    "langserverPath": null,
 
     // Full path to the BYOND installation.
     // Can be a string or list, and can include both Windows and Linux installs.
     // Whichever comes first will be preferred for performing builds.
-    "dreammaker.byondPath": [
+    "byondPath": [
         "C:/Program Files (x86)/BYOND",
         "C:/Program Files/BYOND",
     ],

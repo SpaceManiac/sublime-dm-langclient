@@ -46,11 +46,11 @@ def extension_path():
 
 
 def get_config(name, default=None):
-	return sublime.load_settings("dreammaker.sublime-settings").get("dreammaker." + name, default)
+	return sublime.load_settings("dreammaker.sublime-settings").get(name, default)
 
 
 def set_config(name, value):
-	return sublime.load_settings("dreammaker.sublime-settings").set("dreammaker." + name, value)
+	return sublime.load_settings("dreammaker.sublime-settings").set(name, value)
 
 
 def find_executable(nameset):
