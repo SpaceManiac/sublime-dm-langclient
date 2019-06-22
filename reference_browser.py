@@ -17,47 +17,33 @@
 # File system provider which serves HTML excerpts from the BYOND reference.
 
 import re
-import webbrowser
 
 import sublime, sublime_plugin
 
 from . import utils
 
 
-PHANTOM_SET_KEY = "dreammaker_reference"
-ref_view = None
-ref_phantom_set = None
+ref_view = utils.HtmlView("dreammaker_reference", "DM Reference", "dm_internal_open_reference")
 
 
 def plugin_loaded():
-    global ref_view, ref_phantom_set
-    for window in sublime.windows():
-        for view in window.views():
-            if view.name() == "DM Reference":
-                ref_view = view
-                ref_phantom_set = sublime.PhantomSet(ref_view, PHANTOM_SET_KEY)
-                ref_view.run_command("dm_internal_open_reference")
-                break
+    ref_view.on_navigate = on_navigate
+    ref_view.reclaim_view()
 
 
 class DreammakerOpenReferenceCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
-        global ref_view, ref_phantom_set
-        if not ref_view:
-            ref_view = self.window.new_file()
-            ref_view.set_scratch(True)
-            ref_view.set_read_only(True)
-            ref_view.set_name("DM Reference")
-            ref_phantom_set = sublime.PhantomSet(ref_view, PHANTOM_SET_KEY)
-
-        ref_view.run_command("dm_internal_open_reference", kwargs)
+        ref_view.open_view(self.window, kwargs)
 
 
 class DmInternalOpenReferenceCommand(sublime_plugin.TextCommand):
     def run(self, edit, dm_path=None):
-        phantom = sublime.Phantom(sublime.Region(0, 0), get_content(dm_path), sublime.LAYOUT_BELOW, on_navigate)
-        ref_phantom_set.update([phantom])
-        ref_view.show(0)
+        ref_view.update(get_content(dm_path))
+
+
+class ReferenceEventListener(sublime_plugin.EventListener):
+    def on_close(self, view):
+        ref_view.on_close(view)
 
 
 def on_navigate(href):
@@ -69,17 +55,6 @@ def on_navigate(href):
         sublime.active_window().run_command('dreammaker_open_reference', {"dm_path": rest})
     elif href == "command:dreammaker.openReference":
         sublime.active_window().run_command('dreammaker_open_reference')
-    elif href.startswith('http://') or href.startswith('https://'):
-        webbrowser.open(href)
-    else:
-        print("on_navigate", href)
-
-
-class ReferenceEventListener(sublime_plugin.EventListener):
-    def on_close(self, view):
-        global ref_view
-        if ref_view and (view.id() == ref_view.id()):
-            ref_view = None
 
 
 def get_content(dm_path):

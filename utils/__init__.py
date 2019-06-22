@@ -19,6 +19,7 @@ import os
 import stat
 import sublime
 import hashlib
+import webbrowser
 
 from threading import Condition
 
@@ -80,7 +81,7 @@ def find_byond_file(nameset):
 				return binary
 
 
-class Promise():
+class Promise:
 	def __init__(self):
 		self.cv = Condition()
 
@@ -93,3 +94,45 @@ class Promise():
 		with self.cv:
 			self.cv.wait()
 			return self.result
+
+
+class HtmlView:
+	def __init__(self, key, name, command, on_navigate=None):
+		self.phantom_set_key = key
+		self.name = name
+		self.command = command
+		self.on_navigate = on_navigate
+		self.view = None
+		self.phantom_set = None
+
+	def reclaim_view(self):
+		for window in sublime.windows():
+			for view in window.views():
+				if view.name() == self.name:
+					self.view = view
+					self.phantom_set = sublime.PhantomSet(self.view, self.phantom_set_key)
+					self.view.run_command(self.command)
+
+	def open_view(self, window, cmdargs):
+		if not self.view:
+			self.view = window.new_file()
+			self.view.set_scratch(True)
+			self.view.set_read_only(True)
+			self.view.set_name(self.name)
+			self.phantom_set = sublime.PhantomSet(self.view, self.phantom_set_key)
+		self.view.run_command(self.command, cmdargs)
+
+	def update(self, content):
+		phantom = sublime.Phantom(sublime.Region(0, 0), content, sublime.LAYOUT_BELOW, self._on_navigate)
+		self.phantom_set.update([phantom])
+		self.view.show(0)
+
+	def _on_navigate(self, href):
+		if href.startswith('http://') or href.startswith('https://'):
+			webbrowser.open(href)
+		elif self.on_navigate:
+			self.on_navigate(href)
+
+	def on_close(self, view):
+		if view and self.view and view.id() == self.view.id():
+			self.view = None
