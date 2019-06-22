@@ -22,6 +22,9 @@ import hashlib
 from threading import Condition
 
 
+environment_file = None
+
+
 def md5_file(path):
 	h = hashlib.new('md5')
 	with open(path, 'rb') as f:

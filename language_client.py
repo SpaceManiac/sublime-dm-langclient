@@ -29,10 +29,11 @@ from LSP.plugin.core.settings import ClientConfig, LanguageConfig
 
 from time import sleep
 
+from . import utils
 from .utils import *
 
 
-default_name = 'dreammaker'
+default_name = 'DreamMaker'
 
 default_config = ClientConfig(
 	name=default_name,
@@ -50,6 +51,8 @@ default_config = ClientConfig(
 		),
 	]
 )
+
+update_available = False
 
 
 def plugin_loaded():
@@ -80,9 +83,9 @@ def prepare_server_thread():
 
 class LspDreammakerPlugin(LanguageHandler):
 	def __init__(self):
-		print("LSP __init__")
 		self._name = default_name
 		self._config = default_config
+		self.environment = "DM"
 
 	@property
 	def name(self) -> str:
@@ -102,8 +105,49 @@ class LspDreammakerPlugin(LanguageHandler):
 		return True
 
 	def on_initialized(self, client) -> None:
-		print("on_initialized")
-		pass # extra initialization here.
+		self.client = client
+
+		# Add handlers for the extension methods.
+		client.on_notification('$window/status', self.on_window_status)
+
+	def on_window_status(self, message):
+		if message['environment']:
+			self.environment = message['environment']
+			utils.environment_file = "{}.dme".format(self.environment)
+			try:
+				from . import toggle_ticked
+			except ImportError:
+				pass
+			else:
+				toggle_ticked.update_ticked_status()
+
+		tasks = message['tasks'] or []
+		if not tasks:
+			status_text = self.environment
+			status_tooltip = None
+		elif len(tasks) == 1:
+			element = tasks[0]
+			status_text = "{}: {}".format(self.environment, element)
+			status_tooltip = None
+
+			# // Special handling for the "no .dme file" error message.
+			# if (element == "no .dme file") {
+			# 	status.tooltip = "Open Folder the directory containing your .dme file";
+			# 	status.command = 'vscode.openFolder';
+			# 	await lc.stop();
+			# 	let result = await window.showInformationMessage("The DreamMaker language server requires access to your project's `.dme` file. Please use the \"Open Folder\" command to open the folder which contains it.", "Open Folder");
+			# 	if (result === "Open Folder") {
+			# 		await commands.executeCommand('vscode.openFolder');
+			# 	}
+			# }
+		else:
+			status_text = "{}: {} tasks...".format(environment, len(tasks))
+			status_tooltip = "\n".join(tasks)
+
+		if update_available:
+			status_text += ' - click to update'
+
+		print("DMLC status:", status_text)
 
 
 ###############################################################################
@@ -239,6 +283,7 @@ def auto_update(platform, arch, out_file, hash):
 	except e:
 		return "{}.".format(e)
 
+	print('DreamMaker Language Client autoupdater got', res.status, res.reason)
 	if res.status == 200:  # New version
 		with open(out_file, "wb") as stream:
 			encoding = res.headers.get('Content-encoding')
@@ -256,11 +301,9 @@ def auto_update(platform, arch, out_file, hash):
 		mode |= stat.S_IXUSR
 		os.chmod(out_file, mode)
 
-		# TODO: announce update is available
-		# if (hash && !update_available) {
-		# 	update_available = true;
-		# 	status.text += ' - click to update';
-		# }
+		if hash and not update_available:
+			update_available = True
+			# status_text += ' - click to update'
 		return
 
 	elif res.status in (204, 304):  # Unmodified
