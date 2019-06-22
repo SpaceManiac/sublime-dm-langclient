@@ -53,6 +53,13 @@ def set_config(name, value):
 	return sublime.load_settings("dreammaker.sublime-settings").set(name, value)
 
 
+def open_config():
+	sublime.run_command('edit_settings', {
+		"base_file": "${packages}/DreamMaker Language Client/dreammaker.sublime-settings",
+		"default": "// Settings in here override the defaults\n{\n\t$0\n}",
+	})
+
+
 def find_executable(nameset):
 	opt = get_config('byondPath')
 	if isinstance(opt, str):
