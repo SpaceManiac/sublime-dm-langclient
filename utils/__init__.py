@@ -71,7 +71,6 @@ def find_executable(nameset):
 	for each in opt:
 		for name in nameset:
 			binary = os.path.join(each, "bin", name)
-			print("Check", binary)
 			if is_executable(binary):
 				return binary
 

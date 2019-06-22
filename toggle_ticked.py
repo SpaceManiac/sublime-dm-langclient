@@ -23,6 +23,7 @@ import threading, time
 from . import utils
 
 
+STATUS_KEY = "dreammaker_ticked"
 TICKABLE_GLOB = "**/*.{dm,dmm,dmf,dms}"
 
 
@@ -31,7 +32,7 @@ class DreammakerToggleTickedCommand(sublime_plugin.TextCommand):
 		return is_tickable(self.view.file_name())
 
 	def run(self, edit):
-		if env_toggle_ticked(edit, self.view.file_name()):
+		if env_toggle_ticked(self.view.window(), self.view.file_name()):
 			update_ticked_status(self.view)
 		else:
 			sublime.error_message("There does not appear to be a .dme file.")
@@ -49,15 +50,36 @@ class DmInternalToggleTickedCommand(sublime_plugin.TextCommand):
 		return '{} {}'.format(act, include)
 
 
-def update_ticked_status(view=None):
-	print('update_ticked_status', view)
+class TickStatusEventListener(sublime_plugin.EventListener):
+	def on_activated(self, view):
+		update_ticked_status(view)
 
 
-def env_toggle_ticked(edit, file_uri):
+def update_ticked_status(view):
+	fname = view.file_name()
+	if not fname:
+		view.erase_status(STATUS_KEY)
+		return
+
+	discovered = environment_path(view.window(), fname)
+	if not discovered:
+		view.erase_status(STATUS_KEY)
+		return
+
+	uri, relative = discovered
+	if not is_tickable(relative):
+		view.erase_status(STATUS_KEY)
+		return
+
+	ticked = relative in EnvironmentFile.from_window_and_uri(view.window(), uri).includes
+	view.set_status(STATUS_KEY, "Ticked" if ticked else "Unticked")
+
+
+def env_toggle_ticked(window, file_uri):
 	if not file_uri:
 		return
 
-	discovered = environment_path(file_uri)
+	discovered = environment_path(window, file_uri)
 	if not discovered:
 		return
 
@@ -65,8 +87,8 @@ def env_toggle_ticked(edit, file_uri):
 	if not is_tickable(relative):
 		return
 
-	view = sublime.active_window().open_file(uri)
-	state = not is_ticked(view, relative)
+	view = window.open_file(uri)
+	state = not (relative in EnvironmentFile.from_view(view).includes)
 
 	def when_ready():
 		view.run_command("dm_internal_toggle_ticked", {"include": relative, "state": state})
@@ -84,8 +106,8 @@ def env_toggle_ticked(edit, file_uri):
 		return True
 
 
-def environment_path(of):
-	folders = sublime.active_window().folders()
+def environment_path(window, of):
+	folders = window.folders()
 	if not folders:
 		return
 
@@ -93,20 +115,11 @@ def environment_path(of):
 	relative = os.path.relpath(of, root)
 
 	dme = os.path.join(root, utils.environment_file)
-	return dme, relative
+	return dme, relative.replace("/", "\\")
 
 
 def is_tickable(include):
 	return include.endswith(".dm") or include.endswith(".dmm") or include.endswith(".dmf") or include.endswith(".dms")
-
-
-def is_ticked(view, include):
-	if not is_tickable(include):
-		return None
-
-	env = EnvironmentFile.from_view(view)
-	include = include.replace("/", "\\")
-	return include in env.includes
 
 
 def toggle_ticked(edit, view, include, state):
@@ -120,6 +133,7 @@ def toggle_ticked(edit, view, include, state):
 			if state == True:  # keep the file even if it's already ticked
 				return None
 			view.erase(edit, sublime.Region(view.text_point(line, 0), view.text_point(line + 1, 0)))
+			view.show_at_center(view.text_point(line, 0))
 			return edit
 		elif sort_less(include, file):
 			break
@@ -128,6 +142,7 @@ def toggle_ticked(edit, view, include, state):
 	if state == False:  # don't add the file if it's already not there
 		return None
 	view.insert(edit, view.text_point(line, 0), "{}{}{}\n".format(EnvironmentFile.PREFIX, include, EnvironmentFile.SUFFIX))
+	view.show_at_center(sublime.Region(view.text_point(line, 0), view.text_point(line + 1, 0)))
 	return edit
 
 
@@ -173,14 +188,13 @@ class EnvironmentFile:
 		return EnvironmentFile.from_stream(contents.splitlines())
 
 	@staticmethod
-	def from_uri(uri):
+	def from_window_and_uri(window, uri):
 		# find the environment file either in the open documents or on the filesystem
-		for view in sublime.active_window().views():
-			if view.file_name() == uri:
-				contents = view.substr(sublime.Region(0, view.size()))
-				return EnvironmentFile.from_stream(contents.splitlines())
+		view = window.find_open_file(uri)
+		if view:
+			return EnvironmentFile.from_view(view)
 
-		with open(uri) as stream:
+		with open(os.path.join(window.folders()[0], uri)) as stream:
 			return EnvironmentFile.from_stream(stream)
 
 	@staticmethod
