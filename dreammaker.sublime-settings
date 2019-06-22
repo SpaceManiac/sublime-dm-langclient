@@ -6,5 +6,10 @@
     "dreammaker.langserverPath": null,
 
     // Full path to the BYOND installation.
-    "dreammaker.byondPath": null,
+    // Can be a string or list, and can include both Windows and Linux installs.
+    // Whichever comes first will be preferred for performing builds.
+    "dreammaker.byondPath": [
+        "C:/Program Files (x86)/BYOND",
+        "C:/Program Files/BYOND",
+    ],
 }
