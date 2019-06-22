@@ -108,7 +108,7 @@ def env_toggle_ticked(window, file_uri):
 
 def environment_path(window, of):
 	folders = window.folders()
-	if not folders:
+	if not folders or not utils.environment_file:
 		return
 
 	root = folders[0]

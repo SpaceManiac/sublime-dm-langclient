@@ -53,10 +53,11 @@ default_config = ClientConfig(
 )
 
 update_available = False
+status_text = 'DM: Starting...'
 
 
 def plugin_loaded():
-	print("Extension path:", extension_path())
+	sublime.active_window().status_message(status_text)
 	Thread(target=prepare_server_thread).start()
 
 
@@ -64,18 +65,6 @@ def prepare_server_thread():
 	cmd = determine_server_command()
 	print("Command:", cmd)
 	default_config.binary_args[0] = cmd
-
-
-	# // prepare the status bar
-	# status = window.createStatusBarItem(StatusBarAlignment.Left, 10);
-	# status.text = "DM: starting";
-	# status.command = 'dreammaker.restartLangserver';
-	# status.show();
-
-	# ticked_status = window.createStatusBarItem(StatusBarAlignment.Right, 100);
-	# ticked_status.command = 'dreammaker.toggleTicked';
-	# context.subscriptions.push(window.onDidChangeActiveTextEditor(update_ticked_status));
-	# update_ticked_status();
 
 
 ###############################################################################
@@ -111,6 +100,7 @@ class LspDreammakerPlugin(LanguageHandler):
 		client.on_notification('$window/status', self.on_window_status)
 
 	def on_window_status(self, message):
+		global status_text
 		if message['environment']:
 			self.environment = message['environment']
 			utils.environment_file = "{}.dme".format(self.environment)
@@ -119,16 +109,16 @@ class LspDreammakerPlugin(LanguageHandler):
 			except ImportError:
 				pass
 			else:
-				toggle_ticked.update_ticked_status()
+				window = sublime.active_window()
+				view = window and window.active_view()
+				view and toggle_ticked.update_ticked_status(view)
 
 		tasks = message['tasks'] or []
 		if not tasks:
-			status_text = self.environment
-			status_tooltip = None
+			status_text = "{}: ready".format(self.environment)
 		elif len(tasks) == 1:
 			element = tasks[0]
 			status_text = "{}: {}".format(self.environment, element)
-			status_tooltip = None
 
 			# // Special handling for the "no .dme file" error message.
 			# if (element == "no .dme file") {
@@ -141,13 +131,12 @@ class LspDreammakerPlugin(LanguageHandler):
 			# 	}
 			# }
 		else:
-			status_text = "{}: {} tasks...".format(environment, len(tasks))
-			status_tooltip = "\n".join(tasks)
+			status_text = "{} ({}): {}".format(environment, len(tasks), "; ".join(tasks))
 
 		if update_available:
 			status_text += ' - click to update'
 
-		print("DMLC status:", status_text)
+		sublime.active_window().status_message(status_text)
 
 
 ###############################################################################
@@ -263,6 +252,8 @@ def config_auto_update():
 
 
 def auto_update(platform, arch, out_file, hash):
+	global status_text
+
 	if not config_auto_update():
 		return "Auto-update dsiabled."
 
@@ -293,9 +284,11 @@ def auto_update(platform, arch, out_file, hash):
 		mode |= stat.S_IXUSR
 		os.chmod(out_file, mode)
 
-		if hash and not update_available:
-			update_available = True
-			# status_text += ' - click to update'
+		if hash:
+			if not update_available:
+				update_available = True
+				status_text += " - click to update"
+			sublime.active_window().status_message(status_text)
 		return
 
 	elif res.status in (204, 304):  # Unmodified
