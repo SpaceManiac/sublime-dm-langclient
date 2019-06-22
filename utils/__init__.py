@@ -1,3 +1,4 @@
+# 'utils' package
 import os
 import sublime
 import hashlib
