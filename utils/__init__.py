@@ -50,7 +50,8 @@ def get_config(name, default=None):
 
 
 def set_config(name, value):
-	return sublime.load_settings("dreammaker.sublime-settings").set(name, value)
+	sublime.load_settings("dreammaker.sublime-settings").set(name, value)
+	sublime.save_settings("dreammaker.sublime-settings")
 
 
 def open_config():

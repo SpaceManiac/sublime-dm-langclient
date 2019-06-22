@@ -221,41 +221,54 @@ def prompt_for_server_command(message):
 	return path
 
 
-def config_auto_update():
+def config_auto_update(hash):
 	choice = get_config('autoUpdate')
 	if choice is not None:
 		return choice
 
+	if hash:
+		choices = [
+			"Enable dm-langserver updates (recommended).",
+			"Disable dm-langserver updates.",
+		]
+		choice_actions = ['yes', 'no']
+	else:
+		choices = [
+			"Install dm-langserver now and enable updates (recommended).",
+			"Install dm-langserver now, but disable updates.",
+			"Manually select dm-langserver executable.",
+		]
+		choice_actions = ['yes', 'once', 'no']
+
 	promise = Promise()
 	sublime.active_window().show_quick_panel(
-		[
-			"Enable dm-langserver auto-updates.",
-			"Update dm-langserver just once.",
-			"Disable dm-langserver updates.",
-		],
+		choices,
 		promise.notify,
 		sublime.KEEP_OPEN_ON_FOCUS_LOST,
 	)
 	index, = promise.wait()
 
-	if index == 0:
+	if index < 0:
+		# cancel = do nothing, but ask again later
+		return False
+
+	act = choice_actions[index]
+	if act == 'yes':
 		set_config('autoUpdate', True)
 		return True
-	elif index == 1:
+	elif act == 'once':
 		set_config('autoUpdate', False)
 		return True
-	elif index == 2:
+	elif act == 'no':
 		set_config('autoUpdate', False)
-		return False
-	else:
 		return False
 
 
 def auto_update(platform, arch, out_file, hash):
 	global status_text
 
-	if not config_auto_update():
-		return "Auto-update dsiabled."
+	if not config_auto_update(hash):
+		return "Auto-update disabled."
 
 	url = "https://wombat.platymuus.com/ss13/dm-langserver/update.php?platform={}&arch={}".format(platform, arch)
 	if hash:
