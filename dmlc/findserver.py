@@ -17,7 +17,6 @@ from .utils import *
 def determine_server_command():
 	# If the config override is set, use that, and don't autoupdate.
 	server_command = get_config('langserverPath')
-	print("server_command:", server_command)
 	if server_command:
 		# ".update" files are still supported here to allow easy updating of
 		# local builds.
@@ -140,12 +139,10 @@ def auto_update(platform, arch, out_file, hash):
 		url += "&hash={}".format(hash)
 
 	try:
-		print("Hitting endpoint:", url)
 		res = urllib.request.urlopen(url)
 	except e:
 		return "{}.".format(e)
 
-	print(res.status, res.reason)
 	if res.status == 200:  # New version
 		with open(out_file, "wb") as stream:
 			encoding = res.headers.get('Content-encoding')

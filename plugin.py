@@ -12,8 +12,6 @@ from .dmlc.utils import extension_path
 from .dmlc.findserver import determine_server_command
 
 default_name = 'dreammaker'
-server_package_name = 'vscode-css-languageserver-bin'
-PKG_FOLDER = "DreamMaker Language Client"
 
 default_config = ClientConfig(
 	name=default_name,
@@ -27,7 +25,7 @@ default_config = ClientConfig(
 		LanguageConfig(
 			'dreammaker',
 			['source.dm'],
-			["Packages/" + PKG_FOLDER + "/dreammaker.tmLanguage"]
+			["Packages/DreamMaker Langauge Client/dreammaker.tmLanguage"]
 		),
 	]
 )
