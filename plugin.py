@@ -33,19 +33,16 @@ default_config = ClientConfig(
 )
 
 
-def prepare_server_thread():
-	print("in prepare_server_thread")
-	cmd = determine_server_command()
-	print("determined:", cmd)
-	default_config.binary_args[0] = cmd
-
-
 def plugin_loaded():
 	print("Extension path:", extension_path())
-	print(os.path.join(os.getcwd(), "Packages", PKG_FOLDER))
-
 	Thread(target=prepare_server_thread).start()
-	pass
+
+
+def prepare_server_thread():
+	cmd = determine_server_command()
+	print("Command:", cmd)
+	default_config.binary_args[0] = cmd
+
 
 	# // prepare the status bar
 	# status = window.createStatusBarItem(StatusBarAlignment.Left, 10);
@@ -64,25 +61,22 @@ def plugin_loaded():
 
 class LspDreammakerPlugin(LanguageHandler):
 	def __init__(self):
-		print("langhandler __init__")
 		self._name = default_name
 		self._config = default_config
 
 	@property
 	def name(self) -> str:
-		print("langhandler name()")
 		return self._name
 
 	@property
 	def config(self) -> ClientConfig:
-		print("langhandler config()")
 		return self._config
 
 	def on_start(self, window) -> bool:
-		print("on_start", default_config.binary_args)
-
-		# still waiting on server
+		# Still waiting on prepare_server_thread to finish.
 		if not default_config.binary_args[0]:
+			# When we return False, it seems that LSP will call us again later,
+			# so we have an opportunity to continue configuring.
 			return False
 
 		return True
