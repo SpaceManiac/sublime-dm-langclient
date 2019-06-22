@@ -1,0 +1,22 @@
+[
+    {
+        "id": "preferences",
+        "children": [
+            {
+                "caption": "Package Settings",
+                "mnemonic": "P",
+                "id": "package-settings",
+                "children": [
+                    {
+                        "caption": "DreamMaker",
+                        "command": "edit_settings",
+                        "args": {
+                            "base_file": "${packages}/DreamMaker Language Client/dreammaker.sublime-settings",
+                            "default": "// Settings in here override the defaults\n{\n\t$0\n}"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]
