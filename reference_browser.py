@@ -83,7 +83,6 @@ class ReferenceEventListener(sublime_plugin.EventListener):
 
 
 def get_content(dm_path):
-    print('get_content', dm_path)
     if dm_path:
         fname = utils.find_byond_file(['help/ref/info.html'])
         if not fname:

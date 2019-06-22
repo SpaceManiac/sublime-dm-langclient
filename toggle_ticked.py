@@ -29,7 +29,7 @@ TICKABLE_GLOB = "**/*.{dm,dmm,dmf,dms}"
 
 class DreammakerToggleTickedCommand(sublime_plugin.TextCommand):
 	def is_visible(self):
-		return is_tickable(self.view.file_name())
+		return bool(is_tickable(self.view.file_name()))
 
 	def run(self, edit):
 		if env_toggle_ticked(self.view.window(), self.view.file_name()):
