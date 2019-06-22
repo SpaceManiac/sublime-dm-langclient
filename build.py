@@ -55,7 +55,7 @@ class DreammakerBuildCommand(sublime_plugin.WindowCommand):
 			sublime.error_message('You must configure "dreammaker.byondPath" to point to a valid BYOND installation.')
 			return
 
-		dme = "byond.dme"
+		dme = utils.environment_file
 		if dme is None:
 			sublime.error_message('No DME file')
 			return
