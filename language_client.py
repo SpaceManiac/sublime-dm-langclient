@@ -33,7 +33,7 @@ from . import utils
 from .utils import *
 
 
-default_name = 'DreamMaker'
+default_name = 'dm-langserver'
 
 default_config = ClientConfig(
 	name=default_name,
@@ -202,23 +202,25 @@ def lock_and_notify(cv):
 
 
 def prompt_for_server_command(message):
-	promise = Promise()
-	sublime.active_window().show_quick_panel(
-		["The dm-langserver executable must be selected.", message],
-		promise.notify,
-		sublime.KEEP_OPEN_ON_FOCUS_LOST,
-		0,
-	)
-	index, = promise.wait()
-	if index < 0:
-		return
+	message = "The dm-langserver executable must be specified.\n\n{}".format(message)
 
-	path = None # TODO: file chooser
-	if not path:
-		return
+	opened = False
+	current = utils.get_config('langserverPath')
+	while not current or not is_executable(current):
+		if not sublime.ok_cancel_dialog(message, "Edit"):
+			return
 
-	set_config('langserverPath', path)
-	return path
+		if not opened:
+			utils.open_config()
+			opened = True
+
+		while utils.get_config('langserverPath') == current:
+			sleep(1)
+
+		current = utils.get_config('langserverPath')
+		message = "The specified path is not a valid executable."
+
+	return current
 
 
 def config_auto_update(hash):
