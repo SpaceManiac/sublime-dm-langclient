@@ -53,6 +53,22 @@ def set_config(name, value):
 	return sublime.load_settings("dreammaker.sublime-settings").set("dreammaker." + name, value)
 
 
+def find_executable(nameset):
+	opt = get_config('byondPath')
+	if isinstance(opt, str):
+		opt = [opt]
+	if not opt:
+		print("No BYOND path")
+		return
+
+	for each in opt:
+		for name in nameset:
+			binary = '{}/bin/{}'.format(each, name)
+			print("Check", binary)
+			if is_executable(binary):
+				return binary
+
+
 class Promise():
 	def __init__(self):
 		self.cv = Condition()

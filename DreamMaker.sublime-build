@@ -1,0 +1,5 @@
+{
+    "selector": "source.dm",
+    "target": "dreammaker_build",
+    "cancel": {"kill": true}
+}
