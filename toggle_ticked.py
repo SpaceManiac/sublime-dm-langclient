@@ -18,7 +18,6 @@
 
 import os
 import sublime, sublime_plugin
-import threading, time
 
 from . import utils
 
@@ -88,22 +87,13 @@ def env_toggle_ticked(window, file_uri):
 		return
 
 	view = window.open_file(uri)
-	state = not (relative in EnvironmentFile.from_view(view).includes)
 
 	def when_ready():
+		state = not (relative in EnvironmentFile.from_view(view).includes)
 		view.run_command("dm_internal_toggle_ticked", {"include": relative, "state": state})
 
-	if view.is_loading():
-		def wait_until_loaded():
-			while view.is_loading():
-				time.sleep(0.25)
-			when_ready()
-
-		threading.Thread(target=wait_until_loaded).start()
-		return True
-	else:
-		when_ready()
-		return True
+	utils.when_view_loaded(view, when_ready)
+	return True
 
 
 def environment_path(window, of):

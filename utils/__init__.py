@@ -20,8 +20,9 @@ import stat
 import sublime
 import hashlib
 import webbrowser
+import time
 
-from threading import Condition
+from threading import Condition, Thread
 
 
 environment_file = None
@@ -79,6 +80,18 @@ def find_byond_file(nameset):
 			binary = "{}/{}".format(each, name)
 			if os.path.exists(binary):
 				return binary
+
+
+def when_view_loaded(view, callback):
+	if view.is_loading():
+		def wait_until_loaded():
+			while view.is_loading():
+				time.sleep(0.25)
+			print("loaded done, now callbacking")
+			callback()
+		Thread(target=wait_until_loaded).start()
+	else:
+		callback()
 
 
 class Promise:
