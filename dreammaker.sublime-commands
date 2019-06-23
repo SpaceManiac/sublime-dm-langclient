@@ -7,4 +7,8 @@
         "command": "dreammaker_open_reference",
         "caption": "DreamMaker: Open DM Reference",
     },
+    {
+        "command": "dreammaker_object_tree",
+        "caption": "DreamMaker: Open Object Tree",
+    },
 ]

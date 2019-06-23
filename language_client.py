@@ -99,6 +99,13 @@ class LspDreammakerPlugin(LanguageHandler):
 		# Add handlers for the extension methods.
 		client.on_notification('$window/status', self.on_window_status)
 
+		try:
+			from . import object_tree
+		except ImportError:
+			pass
+		else:
+			object_tree.on_initialized(client)
+
 	def on_window_status(self, message):
 		global status_text
 		if message['environment']:

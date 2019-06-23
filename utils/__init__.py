@@ -125,7 +125,6 @@ class HtmlView:
 	def update(self, content):
 		phantom = sublime.Phantom(sublime.Region(0, 0), content, sublime.LAYOUT_BELOW, self._on_navigate)
 		self.phantom_set.update([phantom])
-		self.view.show(0)
 
 	def _on_navigate(self, href):
 		if href.startswith('http://') or href.startswith('https://'):

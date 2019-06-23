@@ -39,6 +39,7 @@ class DreammakerOpenReferenceCommand(sublime_plugin.WindowCommand):
 class DmInternalOpenReferenceCommand(sublime_plugin.TextCommand):
     def run(self, edit, dm_path=None):
         ref_view.update(get_content(dm_path))
+        ref_view.view.show(0)
 
 
 class ReferenceEventListener(sublime_plugin.EventListener):
