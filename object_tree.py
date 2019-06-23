@@ -43,7 +43,6 @@ def get_initialize_params(project_path, config):
 		experimental = capabilities.setdefault("experimental", {})
 		dreammaker = experimental.setdefault("dreammaker", {})
 		dreammaker["objectTree"] = True
-	print("capabilities patched")
 	return result
 
 sessions.get_initialize_params = get_initialize_params
@@ -64,7 +63,6 @@ def on_object_tree(message):
 	global objtree_root
 	objtree_root = message["root"]
 	objtree_view.update(get_content())
-	print("on_object_tree:", str(len(str(objtree_root))))
 
 
 class DreammakerObjectTreeCommand(sublime_plugin.WindowCommand):
@@ -106,7 +104,12 @@ def get_content():
 		else:
 			return "Open a .dm file to load the object tree."
 
-	bits = []
+	bits = ["""<style>
+		a {text-decoration: none;}
+		.expand, .contract {color: lightblue;}
+		.go {color: white;}
+		.nolink {color: red;}
+		</style>"""]
 	get_type_content(objtree_root, bits)
 	return "".join(bits)
 
@@ -115,17 +118,17 @@ def get_type_content(ty, bits):
 	if ty["name"]:
 		if ty["children"]:
 			if ty["name"] in expanded:
-				bits.append("<a href='contract:{}'>--</a> ".format(ty["name"], len(ty["children"])))
+				bits.append("<a class='contract' href='contract:{}'>--</a> ".format(ty["name"], len(ty["children"])))
 			else:
-				bits.append("<a href='expand:{}'>++</a> ".format(ty["name"], len(ty["children"])))
+				bits.append("<a class='expand' href='expand:{}'>++</a> ".format(ty["name"], len(ty["children"])))
 		else:
 			bits.append("&nbsp;&nbsp;&nbsp;")
 
 	link = location_to_href(ty["location"])
 	if link:
-		bits.append("<a href='{}'>{}</a>".format(link, ty["name"]))
+		bits.append("<a class='go' href='{}'>{}</a>".format(link, ty["name"]))
 	else:
-		bits.append(ty["name"])
+		bits.append("<span class='nolink'>{}</a>".format(ty["name"]))
 
 	if ty["children"] and (not ty["name"] or ty["name"] in expanded):
 		bits.append("<ul>")
