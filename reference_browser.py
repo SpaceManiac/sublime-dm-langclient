@@ -34,6 +34,7 @@ def plugin_loaded():
 class DreammakerOpenReferenceCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
         ref_view.open_view(self.window, kwargs)
+        ref_view.view.window().focus_view(ref_view.view)
 
 
 class DmInternalOpenReferenceCommand(sublime_plugin.TextCommand):

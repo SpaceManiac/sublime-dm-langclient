@@ -86,8 +86,7 @@ def when_view_loaded(view, callback):
 	if view.is_loading():
 		def wait_until_loaded():
 			while view.is_loading():
-				time.sleep(0.25)
-			print("loaded done, now callbacking")
+				time.sleep(0.1)
 			callback()
 		Thread(target=wait_until_loaded).start()
 	else:

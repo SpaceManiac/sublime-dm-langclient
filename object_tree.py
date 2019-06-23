@@ -22,6 +22,11 @@ from LSP.plugin.core import sessions
 
 from . import utils
 
+try:
+	from . import reference_browser
+except ImportError:
+	reference_browser = None
+
 
 has_been_initialized = False
 objtree_view = utils.HtmlView("dreammaker_object_tree", "DM Object Tree", "dm_internal_objtree")
@@ -81,9 +86,17 @@ def on_navigate(href):
 	if href.startswith('expand:'):
 		expanded.add(href[len('expand:'):])
 		objtree_view.update(get_content())
+
 	elif href.startswith('contract:'):
 		expanded.remove(href[len('contract:'):])
 		objtree_view.update(get_content())
+
+	elif href.startswith('dmref:'):
+		sublime.active_window().run_command("dreammaker_open_reference", {"dm_path": href[len('dmref:'):]})
+
+	elif href.startswith('file:'):
+		fname = href[len('file:'):]
+		view = sublime.active_window().open_file(fname, sublime.ENCODED_POSITION | sublime.TRANSIENT)
 
 
 def get_content():
@@ -91,7 +104,7 @@ def get_content():
 		if has_been_initialized:
 			return "Loading..."
 		else:
-			return "Tab to a .dm file and back to load the object tree."
+			return "Open a .dm file to load the object tree."
 
 	bits = []
 	get_type_content(objtree_root, bits)
@@ -99,22 +112,38 @@ def get_content():
 
 
 def get_type_content(ty, bits):
-	bits.append(ty["name"])
-
-	if ty["children"]:
-		if ty["name"]:
+	if ty["name"]:
+		if ty["children"]:
 			if ty["name"] in expanded:
-				bits.append(" [<a href='contract:{}'>-{}</a>]".format(ty["name"], len(ty["children"])))
+				bits.append("<a href='contract:{}'>--</a> ".format(ty["name"], len(ty["children"])))
 			else:
-				bits.append(" [<a href='expand:{}'>+{}</a>]".format(ty["name"], len(ty["children"])))
+				bits.append("<a href='expand:{}'>++</a> ".format(ty["name"], len(ty["children"])))
+		else:
+			bits.append("&nbsp;&nbsp;&nbsp;")
 
-		if not ty["name"] or ty["name"] in expanded:
-			bits.append("<ul>")
-			for child in ty["children"]:
-				bits.append("<li>")
-				get_type_content(child, bits)
-				bits.append("</li>")
-			bits.append("</ul>")
+	link = location_to_href(ty["location"])
+	if link:
+		bits.append("<a href='{}'>{}</a>".format(link, ty["name"]))
+	else:
+		bits.append(ty["name"])
+
+	if ty["children"] and (not ty["name"] or ty["name"] in expanded):
+		bits.append("<ul>")
+		for child in ty["children"]:
+			bits.append("<li>")
+			get_type_content(child, bits)
+			bits.append("</li>")
+		bits.append("</ul>")
+
+
+def location_to_href(location):
+	if location["uri"].startswith("file:///"):
+		return "file:{}:{}:{}".format(
+			location["uri"][len("file://"):],
+			location["range"]["start"]["line"],
+			location["range"]["start"]["character"])
+	elif location["uri"].startswith("dm://docs/reference.dm#") and reference_browser:
+		return "dmref:{}".format(location["uri"][len("dm://docs/reference.dm#"):])
 
 
 # export interface ObjectTreeParams {
