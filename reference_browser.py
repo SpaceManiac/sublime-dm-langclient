@@ -135,9 +135,7 @@ def pre(body):
         end = body.find('</pre>', start)
         if end < 0:
             break
-        z =  body[start + len('<pre>'):end].replace("\n", "<br>")
-        print(z)
-        output += z
+        output += body[start + len('<pre>'):end].replace("\n", "<br>")
         last_pos = end + len('</pre>')
     return output
 

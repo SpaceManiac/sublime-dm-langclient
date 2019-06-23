@@ -62,9 +62,7 @@ def plugin_loaded():
 
 
 def prepare_server_thread():
-	cmd = determine_server_command()
-	print("Command:", cmd)
-	default_config.binary_args[0] = cmd
+	default_config.binary_args[0] = determine_server_command()
 
 
 ###############################################################################
@@ -288,7 +286,7 @@ def auto_update(platform, arch, out_file, hash):
 	except Exception as e:
 		return "{}.".format(e)
 
-	print('DreamMaker Language Client autoupdater got', res.status, res.reason)
+	print('dm-langserver updater:', res.status, res.reason)
 	if res.status == 200:  # New version
 		with open(out_file, "wb") as stream:
 			encoding = res.headers.get('Content-encoding')
