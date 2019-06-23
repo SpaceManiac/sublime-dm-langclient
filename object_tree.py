@@ -94,7 +94,10 @@ def on_navigate(href):
 
 	elif href.startswith('file:'):
 		fname = href[len('file:'):]
-		view = sublime.active_window().open_file(fname, sublime.ENCODED_POSITION | sublime.TRANSIENT)
+		# It would make sense to use sublime.TRANSIENT here, but there appears
+		# to be a bug where transient windows are never "opened" onto the
+		# langserver, even when they are first modified.
+		view = sublime.active_window().open_file(fname, sublime.ENCODED_POSITION)
 
 
 def get_content():
