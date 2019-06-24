@@ -33,18 +33,8 @@ objtree_root = None
 expanded = set()
 
 
-class ObjtreeView(utils.HtmlView):
-    phantom_set_key = "dreammaker_object_tree"
-    name = "DM Object Tree"
-
-    def get_content(self):
-        return get_content()
-
-    def on_navigate(self, href):
-        return on_navigate(href)
-
-
-objtree_view = None
+def plugin_loaded():
+	ObjtreeView.instance = ObjtreeView()
 
 
 # Patch LSP get_initialize_params to include our capabilities
@@ -67,62 +57,61 @@ def on_initialized(client):
 	client.on_notification('experimental/dreammaker/objectTree', on_object_tree)
 
 
-def plugin_loaded():
-	global objtree_view
-	objtree_view = ObjtreeView()
-
-
 def on_object_tree(message):
 	global objtree_root
 	objtree_root = message["root"]
-	objtree_view.update()
+	ObjtreeView.instance.update()
 
 
 class DreammakerObjectTreeCommand(sublime_plugin.WindowCommand):
 	def run(self):
-		objtree_view.open_view(self.window)
+		ObjtreeView.instance.open_view(self.window)
 
 
 class ObjtreeEventListener(sublime_plugin.EventListener):
 	def on_close(self, view):
-		objtree_view.on_close(view)
+		ObjtreeView.instance.on_close(view)
 
 
-def on_navigate(href):
-	if href.startswith('expand:'):
-		expanded.add(href[len('expand:'):])
-		objtree_view.update()
+class ObjtreeView(utils.HtmlView):
+	instance = None
+	phantom_set_key = "dreammaker_object_tree"
+	name = "DM Object Tree"
 
-	elif href.startswith('contract:'):
-		expanded.remove(href[len('contract:'):])
-		objtree_view.update()
+	def on_navigate(self, href):
+		if href.startswith('expand:'):
+			expanded.add(href[len('expand:'):])
+			self.update()
 
-	elif href.startswith('dmref:'):
-		sublime.active_window().run_command("dreammaker_open_reference", {"dm_path": href[len('dmref:'):]})
+		elif href.startswith('contract:'):
+			expanded.remove(href[len('contract:'):])
+			self.update()
 
-	elif href.startswith('file:'):
-		fname = href[len('file:'):]
-		# It would make sense to use sublime.TRANSIENT here, but there appears
-		# to be a bug where transient windows are never "opened" onto the
-		# langserver, even when they are first modified.
-		view = sublime.active_window().open_file(fname, sublime.ENCODED_POSITION)
+		elif href.startswith('dmref:'):
+			sublime.active_window().run_command("dreammaker_open_reference", {"dm_path": href[len('dmref:'):]})
 
+		elif href.startswith('file:'):
+			fname = href[len('file:'):]
+			# It would make sense to use sublime.TRANSIENT here, but there appears
+			# to be a bug where transient windows are never "opened" onto the
+			# langserver, even when they are first modified.
+			sublime.active_window().open_file(fname, sublime.ENCODED_POSITION)
 
-def get_content():
-	if objtree_root is None:
-		if has_been_initialized:
-			return "Loading..."
-		else:
-			return "Open a .dm file to load the object tree."
+	def get_content(self):
+		if objtree_root is None:
+			if has_been_initialized:
+				return "Loading..."
+			else:
+				return "Open a .dm file to load the object tree."
 
-	bits = ["""<style>
-		a {text-decoration: none;}
-		.expand, .contract {color: lightblue;}
-		.go {color: white;}
-		.nolink {color: red;}
-		</style>"""]
-	get_type_content(objtree_root, bits)
-	return "".join(bits)
+		bits = ["""<style>
+			a {text-decoration: none;}
+			.expand, .contract {color: lightblue;}
+			.go {color: white;}
+			.nolink {color: red;}
+			</style>"""]
+		get_type_content(objtree_root, bits)
+		return "".join(bits)
 
 
 def get_type_content(ty, bits):

@@ -23,45 +23,38 @@ import sublime, sublime_plugin
 from . import utils
 
 
-class RefView(utils.HtmlView):
-    phantom_set_key = "dreammaker_reference"
-    name = "DM Reference"
-
-    def get_content(self, dm_path=None):
-        return get_content(dm_path)
-
-    def on_navigate(self, href):
-        return on_navigate(href)
-
-
-ref_view = None
-
-
 def plugin_loaded():
-    global ref_view
-    ref_view = RefView()
+    RefView.instance = RefView()
 
 
 class DreammakerOpenReferenceCommand(sublime_plugin.WindowCommand):
     def run(self, dm_path=None):
-        view = ref_view.open_view(self.window, dm_path=dm_path)
-        view.show(0)
+        RefView.instance.open_view(self.window, dm_path=dm_path)
 
 
 class ReferenceEventListener(sublime_plugin.EventListener):
     def on_close(self, view):
-        ref_view.on_close(view)
+        RefView.instance.on_close(view)
 
 
-def on_navigate(href):
-    if href.startswith('info.html#'):
-        rest = href[len('info.html#'):]
-        sublime.active_window().run_command('dreammaker_open_reference', {"dm_path": rest})
-    elif href.startswith('#'):
-        rest = href[1:]
-        sublime.active_window().run_command('dreammaker_open_reference', {"dm_path": rest})
-    elif href == "command:dreammaker.openReference":
-        sublime.active_window().run_command('dreammaker_open_reference')
+class RefView(utils.HtmlView):
+    phantom_set_key = "dreammaker_reference"
+    name = "DM Reference"
+
+    def update(self, **kwargs):
+        super().update(**kwargs)
+        self.view.show(0)
+
+    def on_navigate(self, href):
+        if href.startswith('info.html#'):
+            self.update(dm_path=href[len('info.html#'):])
+        elif href.startswith('#'):
+            self.update(dm_path=href[1:])
+        elif href == "command:dreammaker.openReference":
+            self.update()
+
+    def get_content(self, dm_path=None):
+        return get_content(dm_path)
 
 
 def get_content(dm_path):
