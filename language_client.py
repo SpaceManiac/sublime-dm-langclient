@@ -272,7 +272,7 @@ def config_auto_update(hash):
 
 
 def auto_update(platform, arch, out_file, hash):
-	global status_text
+	global status_text, update_available
 
 	if not config_auto_update(hash):
 		return "Auto-update disabled."
