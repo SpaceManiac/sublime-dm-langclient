@@ -139,7 +139,7 @@ class LspDreammakerPlugin(LanguageHandler):
 			status_text = "{} ({}): {}".format(environment, len(tasks), "; ".join(tasks))
 
 		if update_available:
-			status_text += ' - click to update'
+			status_text += ' - update ready'
 
 		sublime.active_window().status_message(status_text)
 
@@ -187,10 +187,10 @@ def determine_server_command():
 
 def update_copy(main_file, update_file):
 	for _ in range(8):
-		if not is_executable(update_file):
+		if not os.path.exists(update_file):
 			return
 		try:
-			shutil.move(update_file, main_file)
+			os.replace(update_file, main_file)
 			return
 		except:
 			pass
@@ -198,7 +198,7 @@ def update_copy(main_file, update_file):
 		# running in this window. Wait a bit and try again.
 		sleep(0.25)
 	# Last chance, and if it really fails, propagate that up
-	shutil.move(update_file, main_file)
+	os.replace(update_file, main_file)
 
 
 def lock_and_notify(cv):
@@ -307,7 +307,7 @@ def auto_update(platform, arch, out_file, hash):
 		if hash:
 			if not update_available:
 				update_available = True
-				status_text += " - click to update"
+				status_text += " - update ready"
 			sublime.active_window().status_message(status_text)
 		return
 
