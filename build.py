@@ -80,6 +80,16 @@ class DreammakerBuildCommand(sublime_plugin.WindowCommand):
 				pass
 			self.proc = None
 
+		try:
+			from LSP.plugin.core.protocol import Notification
+			from . import language_client
+		except ImportError as e:
+			print("not issuing reparse to langserver:", e)
+		else:
+			client = language_client.LspDreammakerPlugin.client
+			if client:
+				client.send_notification(Notification("experimental/dreammaker/reparse"))
+
 		args = [exe, dme]
 		env = {}
 		if sublime.platform() != 'windows':

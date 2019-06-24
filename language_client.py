@@ -69,6 +69,8 @@ def prepare_server_thread():
 # LSP Integration
 
 class LspDreammakerPlugin(LanguageHandler):
+	client = None
+
 	def __init__(self):
 		self._name = default_name
 		self._config = default_config
@@ -92,7 +94,7 @@ class LspDreammakerPlugin(LanguageHandler):
 		return True
 
 	def on_initialized(self, client) -> None:
-		self.client = client
+		LspDreammakerPlugin.client = client
 
 		# Add handlers for the extension methods.
 		client.on_notification('$window/status', self.on_window_status)
