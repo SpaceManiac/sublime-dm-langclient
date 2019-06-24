@@ -33,6 +33,9 @@ from . import utils
 from .utils import *
 
 
+__version__ = "0.0.0"
+
+
 default_name = 'dm-langserver'
 
 default_config = ClientConfig(
@@ -279,7 +282,7 @@ def auto_update(platform, arch, out_file, hash):
 	if not config_auto_update(hash):
 		return "Auto-update disabled."
 
-	url = "https://wombat.platymuus.com/ss13/dm-langserver/update.php?platform={}&arch={}".format(platform, arch)
+	url = "https://wombat.platymuus.com/ss13/dm-langserver/update.php?sublime={}&platform={}&arch={}".format(__version__, platform, arch)
 	if hash:
 		url += "&hash={}".format(hash)
 
