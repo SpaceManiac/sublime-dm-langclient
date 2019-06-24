@@ -1,8 +1,11 @@
 {
-    // Whether language server auto-update is enabled.
+    // Whether language server auto-update is enabled. The default, null, will
+    // show a prompt on first use.
     "autoUpdate": null,
 
-    // Full path to the DreamMaker language server executable.
+    // Full path to the DreamMaker language server executable. This can be left
+    // null if "autoUpdate" is enabled, in which case the downloaded binary
+    // will be used.
     "langserverPath": null,
 
     // Full path to the BYOND installation.
