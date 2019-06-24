@@ -109,13 +109,13 @@ class Promise:
 
 
 class HtmlView:
-	def __init__(self, key, name, command, on_navigate=None):
-		self.phantom_set_key = key
-		self.name = name
-		self.command = command
-		self.on_navigate = on_navigate
+	def __init__(self):
 		self.view = None
 		self.phantom_set = None
+		self.last_kwargs = {}
+		self.reclaim_view()
+		assert self.phantom_set_key
+		assert self.name
 
 	def reclaim_view(self):
 		for window in sublime.windows():
@@ -123,19 +123,23 @@ class HtmlView:
 				if view.name() == self.name:
 					self.view = view
 					self.phantom_set = sublime.PhantomSet(self.view, self.phantom_set_key)
-					self.view.run_command(self.command)
+					self.update()
+					return
 
-	def open_view(self, window, cmdargs):
+	def open_view(self, window, **kwargs):
 		if not self.view:
 			self.view = window.new_file()
 			self.view.set_scratch(True)
 			self.view.set_read_only(True)
 			self.view.set_name(self.name)
 			self.phantom_set = sublime.PhantomSet(self.view, self.phantom_set_key)
-		self.view.run_command(self.command, cmdargs)
+		self.update(**kwargs)
+		window.focus_view(self.view)
+		return self.view
 
-	def update(self, content):
+	def update(self, **kwargs):
 		if self.phantom_set:
+			content = self.get_content(**kwargs)
 			phantom = sublime.Phantom(sublime.Region(0, 0), content, sublime.LAYOUT_BELOW, self._on_navigate)
 			self.phantom_set.update([phantom])
 
@@ -148,3 +152,10 @@ class HtmlView:
 	def on_close(self, view):
 		if view and self.view and view.id() == self.view.id():
 			self.view = None
+			self.phantom_set = None
+
+	def get_content(self, **kwargs):
+		return "No content for {}".format(kwargs)
+
+	def on_navigate(self, href):
+		pass

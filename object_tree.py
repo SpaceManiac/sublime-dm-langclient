@@ -29,9 +29,22 @@ except ImportError:
 
 
 has_been_initialized = False
-objtree_view = utils.HtmlView("dreammaker_object_tree", "DM Object Tree", "dm_internal_objtree")
 objtree_root = None
 expanded = set()
+
+
+class ObjtreeView(utils.HtmlView):
+    phantom_set_key = "dreammaker_object_tree"
+    name = "DM Object Tree"
+
+    def get_content(self):
+        return get_content()
+
+    def on_navigate(self, href):
+        return on_navigate(href)
+
+
+objtree_view = None
 
 
 # Patch LSP get_initialize_params to include our capabilities
@@ -55,24 +68,19 @@ def on_initialized(client):
 
 
 def plugin_loaded():
-	objtree_view.on_navigate = on_navigate
-	objtree_view.reclaim_view()
+	global objtree_view
+	objtree_view = ObjtreeView()
 
 
 def on_object_tree(message):
 	global objtree_root
 	objtree_root = message["root"]
-	objtree_view.update(get_content())
+	objtree_view.update()
 
 
 class DreammakerObjectTreeCommand(sublime_plugin.WindowCommand):
-	def run(self, **kwargs):
-		objtree_view.open_view(self.window, kwargs)
-
-
-class DmInternalObjtreeCommand(sublime_plugin.TextCommand):
-	def run(self, edit):
-		objtree_view.update(get_content())
+	def run(self):
+		objtree_view.open_view(self.window)
 
 
 class ObjtreeEventListener(sublime_plugin.EventListener):
@@ -83,11 +91,11 @@ class ObjtreeEventListener(sublime_plugin.EventListener):
 def on_navigate(href):
 	if href.startswith('expand:'):
 		expanded.add(href[len('expand:'):])
-		objtree_view.update(get_content())
+		objtree_view.update()
 
 	elif href.startswith('contract:'):
 		expanded.remove(href[len('contract:'):])
-		objtree_view.update(get_content())
+		objtree_view.update()
 
 	elif href.startswith('dmref:'):
 		sublime.active_window().run_command("dreammaker_open_reference", {"dm_path": href[len('dmref:'):]})

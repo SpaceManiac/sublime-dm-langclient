@@ -23,24 +23,29 @@ import sublime, sublime_plugin
 from . import utils
 
 
-ref_view = utils.HtmlView("dreammaker_reference", "DM Reference", "dm_internal_open_reference")
+class RefView(utils.HtmlView):
+    phantom_set_key = "dreammaker_reference"
+    name = "DM Reference"
+
+    def get_content(self, dm_path=None):
+        return get_content(dm_path)
+
+    def on_navigate(self, href):
+        return on_navigate(href)
+
+
+ref_view = None
 
 
 def plugin_loaded():
-    ref_view.on_navigate = on_navigate
-    ref_view.reclaim_view()
+    global ref_view
+    ref_view = RefView()
 
 
 class DreammakerOpenReferenceCommand(sublime_plugin.WindowCommand):
-    def run(self, **kwargs):
-        ref_view.open_view(self.window, kwargs)
-        ref_view.view.window().focus_view(ref_view.view)
-
-
-class DmInternalOpenReferenceCommand(sublime_plugin.TextCommand):
-    def run(self, edit, dm_path=None):
-        ref_view.update(get_content(dm_path))
-        ref_view.view.show(0)
+    def run(self, dm_path=None):
+        view = ref_view.open_view(self.window, dm_path=dm_path)
+        view.show(0)
 
 
 class ReferenceEventListener(sublime_plugin.EventListener):
