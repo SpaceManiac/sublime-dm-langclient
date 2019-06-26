@@ -88,14 +88,14 @@ class ObjtreeView(utils.HtmlView):
 			self.update()
 
 		elif href.startswith('dmref:'):
-			sublime.active_window().run_command("dreammaker_open_reference", {"dm_path": href[len('dmref:'):]})
+			self.view.window().run_command("dreammaker_open_reference", {"dm_path": href[len('dmref:'):]})
 
 		elif href.startswith('file:'):
 			fname = href[len('file:'):]
 			# It would make sense to use sublime.TRANSIENT here, but there appears
 			# to be a bug where transient windows are never "opened" onto the
 			# langserver, even when they are first modified.
-			sublime.active_window().open_file(fname, sublime.ENCODED_POSITION)
+			self.view.window().open_file(fname, sublime.ENCODED_POSITION)
 
 	def get_content(self):
 		if objtree_root is None:
