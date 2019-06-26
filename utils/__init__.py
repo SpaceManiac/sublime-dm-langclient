@@ -25,9 +25,6 @@ import time
 from threading import Condition, Thread
 
 
-environment_file = None
-
-
 def is_executable(path):
 	req = stat.S_IXUSR | stat.S_IRUSR
 	try:

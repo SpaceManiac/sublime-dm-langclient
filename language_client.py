@@ -72,12 +72,14 @@ def prepare_server_thread():
 # LSP Integration
 
 class LspDreammakerPlugin(LanguageHandler):
-	client = None
+	instances = {}
 
 	def __init__(self):
 		self._name = default_name
 		self._config = default_config
 		self.environment = "DM"
+		self.environment_file = None
+		self.window = None
 
 	@property
 	def name(self) -> str:
@@ -94,10 +96,11 @@ class LspDreammakerPlugin(LanguageHandler):
 			# so we have an opportunity to continue configuring.
 			return False
 
+		LspDreammakerPlugin.instances[window.id()] = self
 		return True
 
 	def on_initialized(self, client) -> None:
-		LspDreammakerPlugin.client = client
+		self.client = client
 
 		# Add handlers for the extension methods.
 		client.on_notification('$window/status', self.on_window_status)
@@ -113,13 +116,13 @@ class LspDreammakerPlugin(LanguageHandler):
 		global status_text
 		if message['environment']:
 			self.environment = message['environment']
-			utils.environment_file = "{}.dme".format(self.environment)
+			self.environment_file = "{}.dme".format(self.environment)
 			try:
 				from . import toggle_ticked
 			except ImportError:
 				pass
 			else:
-				window = sublime.active_window()
+				window = self.window
 				view = window and window.active_view()
 				view and toggle_ticked.update_ticked_status(view)
 

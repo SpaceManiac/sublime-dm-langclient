@@ -56,9 +56,14 @@ class DreammakerBuildCommand(sublime_plugin.WindowCommand):
 			utils.open_config()
 			return
 
-		dme = utils.environment_file
-		if dme is None:
-			sublime.error_message('No DME file')
+		from .language_client import LspDreammakerPlugin
+		instance = LspDreammakerPlugin.instances.get(self.window.id())
+		if not instance:
+			sublime.error_message('Please wait for the language server to start.')
+			return
+		dme = instance.environment_file
+		if not dme:
+			sublime.error_message('No DME detected by the language server.')
 			return
 
 		with self.panel_lock:
@@ -86,9 +91,8 @@ class DreammakerBuildCommand(sublime_plugin.WindowCommand):
 		except ImportError as e:
 			print("not issuing reparse to langserver:", e)
 		else:
-			client = language_client.LspDreammakerPlugin.client
-			if client:
-				client.send_notification(Notification("experimental/dreammaker/reparse"))
+			if instance.client:
+				instance.client.send_notification(Notification("experimental/dreammaker/reparse"))
 
 		args = [exe, dme]
 		env = {}

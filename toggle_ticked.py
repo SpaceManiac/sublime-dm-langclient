@@ -98,13 +98,18 @@ def env_toggle_ticked(window, file_uri):
 
 def environment_path(window, of):
 	folders = window.folders()
-	if not folders or not utils.environment_file:
+	if not folders:
+		return
+
+	from .language_client import LspDreammakerPlugin
+	instance = LspDreammakerPlugin.instances.get(window.id())
+	if not instance or not instance.environment_file:
 		return
 
 	root = folders[0]
 	relative = os.path.relpath(of, root)
 
-	dme = os.path.join(root, utils.environment_file)
+	dme = os.path.join(root, instance.environment_file)
 	return dme, relative.replace("/", "\\")
 
 
