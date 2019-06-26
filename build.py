@@ -59,7 +59,7 @@ class DreammakerBuildCommand(sublime_plugin.WindowCommand):
 		from .language_client import LspDreammakerPlugin
 		instance = LspDreammakerPlugin.instances.get(self.window.id())
 		if not instance:
-			sublime.error_message('Please wait for the language server to start.')
+			sublime.error_message('Start the language server by opening a .dm file.')
 			return
 		dme = instance.environment_file
 		if not dme:
@@ -107,7 +107,7 @@ class DreammakerBuildCommand(sublime_plugin.WindowCommand):
 			cwd=working_dir,
 			env=env,
 			# Disable console popup on Windows
-			creationflags=0x8000000,
+			creationflags=0x8000000 if sublime.platform() == "windows" else 0,
 		)
 		self.killed = False
 
