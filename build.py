@@ -102,6 +102,8 @@ class DreammakerBuildCommand(sublime_plugin.WindowCommand):
 			stderr=subprocess.STDOUT,
 			cwd=working_dir,
 			env=env,
+			# Disable console popup on Windows
+			creationflags=0x8000000,
 		)
 		self.killed = False
 
