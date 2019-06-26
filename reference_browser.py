@@ -24,122 +24,122 @@ from . import utils
 
 
 def plugin_loaded():
-    RefView.instance = RefView()
+	RefView.instance = RefView()
 
 
 class DreammakerOpenReferenceCommand(sublime_plugin.WindowCommand):
-    def run(self, dm_path=None):
-        RefView.instance.open_view(self.window, dm_path=dm_path)
+	def run(self, dm_path=None):
+		RefView.instance.open_view(self.window, dm_path=dm_path)
 
 
 class ReferenceEventListener(sublime_plugin.EventListener):
-    def on_close(self, view):
-        RefView.instance.on_close(view)
+	def on_close(self, view):
+		RefView.instance.on_close(view)
 
 
 class RefView(utils.HtmlView):
-    phantom_set_key = "dreammaker_reference"
-    name = "DM Reference"
+	phantom_set_key = "dreammaker_reference"
+	name = "DM Reference"
 
-    def update(self, **kwargs):
-        super().update(**kwargs)
-        self.view.show(0)
+	def update(self, **kwargs):
+		super().update(**kwargs)
+		self.view.show(0)
 
-    def on_navigate(self, href):
-        if href.startswith('info.html#'):
-            self.update(dm_path=href[len('info.html#'):])
-        elif href.startswith('#'):
-            self.update(dm_path=href[1:])
-        elif href == "command:dreammaker.openReference":
-            self.update()
+	def on_navigate(self, href):
+		if href.startswith('info.html#'):
+			self.update(dm_path=href[len('info.html#'):])
+		elif href.startswith('#'):
+			self.update(dm_path=href[1:])
+		elif href == "command:dreammaker.openReference":
+			self.update()
 
-    def get_content(self, dm_path=None):
-        return get_content(dm_path)
+	def get_content(self, dm_path=None):
+		return get_content(dm_path)
 
 
 def get_content(dm_path):
-    if dm_path:
-        fname = utils.find_byond_file(['help/ref/info.html'])
-        if not fname:
-            sublime.error_message("A valid Windows BYOND path must be given to use the reference browser.")
-            utils.open_settings()
-            return
+	if dm_path:
+		fname = utils.find_byond_file(['help/ref/info.html'])
+		if not fname:
+			sublime.error_message("A valid Windows BYOND path must be given to use the reference browser.")
+			utils.open_settings()
+			return
 
-        with open(fname, encoding='latin1') as f:
-            contents = f.read()
+		with open(fname, encoding='latin1') as f:
+			contents = f.read()
 
-        dm_path = dm_path.replace(">", "&gt;").replace("<", "&lt;")
+		dm_path = dm_path.replace(">", "&gt;").replace("<", "&lt;")
 
-        # Extract the section for the item being looked up
-        start = contents.find("<a name={}>".format(dm_path))
-        if start < 0:
-            # Handle @dt; and @qu;
-            start = contents.find("<a name={} toc=".format(dm_path))
-            dm_path = dm_path.replace("@dt;", ".").replace("@qu;", '?')
-        if start < 0:
-            # Handle constants which are subordinate to another entry
-            raw_name = dm_path[1 + dm_path.rfind("/"):]
-            start = contents.find(raw_name)
-            start = contents.find("<a name=", start)
-        if start < 0:
-            body = "No such entry <tt>{}</tt> in the reference.".format(dm_path)
-        else:
-            start = contents.find("\n", start)
-            end = contents.find("<hr", start)
-            body = contents[start:end]
-    else:
-        fname = utils.find_byond_file(['help/ref/contents.html'])
-        if not fname:
-            sublime.error_message("A valid Windows BYOND path must be given to use the reference browser.")
-            utils.open_settings()
-            return
+		# Extract the section for the item being looked up
+		start = contents.find("<a name={}>".format(dm_path))
+		if start < 0:
+			# Handle @dt; and @qu;
+			start = contents.find("<a name={} toc=".format(dm_path))
+			dm_path = dm_path.replace("@dt;", ".").replace("@qu;", '?')
+		if start < 0:
+			# Handle constants which are subordinate to another entry
+			raw_name = dm_path[1 + dm_path.rfind("/"):]
+			start = contents.find(raw_name)
+			start = contents.find("<a name=", start)
+		if start < 0:
+			body = "No such entry <tt>{}</tt> in the reference.".format(dm_path)
+		else:
+			start = contents.find("\n", start)
+			end = contents.find("<hr", start)
+			body = contents[start:end]
+	else:
+		fname = utils.find_byond_file(['help/ref/contents.html'])
+		if not fname:
+			sublime.error_message("A valid Windows BYOND path must be given to use the reference browser.")
+			utils.open_settings()
+			return
 
-        with open(fname, encoding='latin1') as f:
-            contents = f.read()
+		with open(fname, encoding='latin1') as f:
+			contents = f.read()
 
-        body = contents[contents.index("<dl>"):contents.index("</body>")]
+		body = contents[contents.index("<dl>"):contents.index("</body>")]
 
-    body = body.replace("<dd><dl>", "<dl>")
-    body = body.replace("<dl><dt>", "<ul><li>")
-    body = body.replace("<dl>", "<ul><li>")
-    body = body.replace("</dl>", "</li></ul>")
-    body = body.replace("<dd>", "</li><li>")
-    body = body.replace("<dt>", "</li><li>")
-    body = body.replace("</dd>", "")
-    body = body.replace("</dt>", "")
-    body = body.replace("<xmp>", "<pre>")
-    body = body.replace("</xmp>", "</pre>")
-    body = re.sub(r'(<li>\s*)+', r'<li>', body)
-    body = re.sub(r'(</li>\s*)+', r'</li>', body)
-    body = re.sub(r'<a href=([^>]+)>', r'<a href="\1">', body)
-    body = body.replace("<<", "&lt;&lt;")
-    body = re.sub(r'<([^/a-zA-Z])', r'&lt;\1', body)
-    body = re.sub(r'&([^&#a-z])', r'&amp;\1', body)
-    body = re.sub(r'<li>\s*</li>', r'', body)
-    body = pre(body)
+	body = body.replace("<dd><dl>", "<dl>")
+	body = body.replace("<dl><dt>", "<ul><li>")
+	body = body.replace("<dl>", "<ul><li>")
+	body = body.replace("</dl>", "</li></ul>")
+	body = body.replace("<dd>", "</li><li>")
+	body = body.replace("<dt>", "</li><li>")
+	body = body.replace("</dd>", "")
+	body = body.replace("</dt>", "")
+	body = body.replace("<xmp>", "<pre>")
+	body = body.replace("</xmp>", "</pre>")
+	body = re.sub(r'(<li>\s*)+', r'<li>', body)
+	body = re.sub(r'(</li>\s*)+', r'</li>', body)
+	body = re.sub(r'<a href=([^>]+)>', r'<a href="\1">', body)
+	body = body.replace("<<", "&lt;&lt;")
+	body = re.sub(r'<([^/a-zA-Z])', r'&lt;\1', body)
+	body = re.sub(r'&([^&#a-z])', r'&amp;\1', body)
+	body = re.sub(r'<li>\s*</li>', r'', body)
+	body = pre(body)
 
-    return format_body(body, dm_path)
+	return format_body(body, dm_path)
 
 
 def pre(body):
-    output = ''
-    last_pos = 0
-    while True:
-        start = body.find('<pre>', last_pos)
-        if start < 0:
-            output += body[last_pos:]
-            break
-        output += body[last_pos:start]
-        end = body.find('</pre>', start)
-        if end < 0:
-            break
-        output += body[start + len('<pre>'):end].replace("\n", "<br>")
-        last_pos = end + len('</pre>')
-    return output
+	output = ''
+	last_pos = 0
+	while True:
+		start = body.find('<pre>', last_pos)
+		if start < 0:
+			output += body[last_pos:]
+			break
+		output += body[last_pos:start]
+		end = body.find('</pre>', start)
+		if end < 0:
+			break
+		output += body[start + len('<pre>'):end].replace("\n", "<br>")
+		last_pos = end + len('</pre>')
+	return output
 
 
 def format_body(body, dm_path=None):
-        return """<!DOCTYPE html>
+		return """<!DOCTYPE html>
 <html>
 <head>
 </head>
