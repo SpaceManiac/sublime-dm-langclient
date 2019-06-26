@@ -71,14 +71,20 @@ def prepare_server_thread():
 ###############################################################################
 # LSP Integration
 
+
+class Instance:
+	client = None
+	environment_file = None
+
+
 class LspDreammakerPlugin(LanguageHandler):
+	last_instance = None
 	instances = {}
 
 	def __init__(self):
 		self._name = default_name
 		self._config = default_config
 		self.environment = "DM"
-		self.environment_file = None
 		self.window = None
 
 	@property
@@ -96,11 +102,14 @@ class LspDreammakerPlugin(LanguageHandler):
 			# so we have an opportunity to continue configuring.
 			return False
 
-		LspDreammakerPlugin.instances[window.id()] = self
+		# This is brittle, but it appears to be the only way.
+		inst = Instance()
+		LspDreammakerPlugin.last_instance = inst
+		LspDreammakerPlugin.instances[window.id()] = inst
 		return True
 
 	def on_initialized(self, client) -> None:
-		self.client = client
+		LspDreammakerPlugin.last_instance.client = client
 
 		# Add handlers for the extension methods.
 		client.on_notification('$window/status', self.on_window_status)
@@ -116,7 +125,7 @@ class LspDreammakerPlugin(LanguageHandler):
 		global status_text
 		if message['environment']:
 			self.environment = message['environment']
-			self.environment_file = "{}.dme".format(self.environment)
+			LspDreammakerPlugin.last_instance.environment_file = "{}.dme".format(self.environment)
 			try:
 				from . import toggle_ticked
 			except ImportError:
