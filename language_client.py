@@ -181,7 +181,7 @@ def determine_server_command():
 	arch = sublime.arch()
 	platform = {"windows": "win32", "osx": "darwin", "linux": "linux"}[sublime.platform()]
 	extension = ".exe" if platform == "win32" else ""
-	auto_file = "{}/bin/dm-langserver-{}-{}{}".format(extension_path(), arch, platform, extension)
+	auto_file = "{}/bin/dm-langserver-{}-{}{}".format(cache_path(), arch, platform, extension)
 	update_file = "{}.update".format(auto_file)
 	update_copy(auto_file, update_file)
 
@@ -190,7 +190,7 @@ def determine_server_command():
 		Thread(target=lambda: auto_update(platform, arch, update_file, md5_file(auto_file))).start()
 	else:
 		# Otherwise, update now.
-		os.makedirs("{}/bin".format(extension_path()), exist_ok=True)
+		os.makedirs("{}/bin".format(cache_path()), exist_ok=True)
 		failure = auto_update(platform, arch, auto_file, None)
 		if failure:
 			return prompt_for_server_command(failure)

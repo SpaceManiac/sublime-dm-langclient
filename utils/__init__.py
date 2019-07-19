@@ -40,8 +40,8 @@ def md5_file(path):
 	return h.hexdigest()
 
 
-def extension_path():
-	return os.path.split(os.path.split(__file__)[0])[0]
+def cache_path():
+	return os.path.join(sublime.cache_path(), 'DreamMaker Language Client')
 
 
 def get_config(name, default=None):
