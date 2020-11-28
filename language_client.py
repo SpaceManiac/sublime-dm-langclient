@@ -33,7 +33,7 @@ from . import utils
 from .utils import *
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 
 default_name = 'dm-langserver'
