@@ -37,20 +37,6 @@ def plugin_loaded():
 	ObjtreeView.instance = ObjtreeView()
 
 
-# Patch LSP get_initialize_params to include our capabilities
-orig_initialize_params = sessions.get_initialize_params
-def get_initialize_params(project_path, config):
-	result = orig_initialize_params(project_path, config)
-	if config.name == 'dm-langserver':
-		capabilities = result.setdefault("capabilities", {})
-		experimental = capabilities.setdefault("experimental", {})
-		dreammaker = experimental.setdefault("dreammaker", {})
-		dreammaker["objectTree"] = True
-	return result
-
-sessions.get_initialize_params = get_initialize_params
-
-
 def on_initialized(client):
 	global has_been_initialized
 	has_been_initialized = True

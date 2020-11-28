@@ -52,7 +52,12 @@ default_config = ClientConfig(
 			['source.dm'],
 			["Packages/DreamMaker Language Client/dreammaker.tmLanguage"]
 		),
-	]
+	],
+	experimental_capabilities={
+		'dreammaker': {
+			'objectTree': True,
+		}
+	},
 )
 
 update_available = False
